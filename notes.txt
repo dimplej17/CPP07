@@ -1,0 +1,51 @@
+/////// ex00 ///////
+
+What is a template?
+A way to write generic code that works with multiple types without duplicating the implementation.
+
+When is template code generated?
+At compile time, when the compiler knows the concrete type.
+
+Why are templates in header files?
+Because the compiler needs to see the full implementation to instantiate the template for each type used.
+
+What is template instantiation?
+The compiler generating a concrete version of a template (for example, swap(int&, int&)) from the generic template.
+
+Difference between typename and class?
+No difference in template parameter lists. Both declare a type parameter.
+
+Why return const T& instead of T?
+To avoid unnecessary copying and to prevent modification of the returned object.
+
+Why use references in swap()?
+To modify the original variables rather than copies.
+
+
+
+Your template is perfectly valid C++, but the idiomatic and more generic version is:
+
+template <typename T>
+const T& min(const T& a, const T& b)
+{
+    if (a < b)
+        return a;
+    return b;
+}
+
+template <typename T>
+const T& max(const T& a, const T& b)
+{
+    if (a > b)
+        return a;
+    return b;
+}
+
+An evaluator may ask why this version is preferred. A good answer is:
+
+const T& parameters accept both const and non-const objects.
+Returning const T& avoids unnecessary copies, especially for large objects like std::string.
+swap() cannot use const because it modifies its arguments.
+
+
+/////// ex01 ///////

@@ -6,7 +6,7 @@
 /*   By: djanardh <djanardh@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/20 17:32:03 by djanardh          #+#    #+#             */
-/*   Updated: 2026/07/21 16:14:58 by djanardh         ###   ########.fr       */
+/*   Updated: 2026/07/21 16:19:06 by djanardh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,8 @@ int main (void)
 	int a = 2;
 	int b = 3;
 	::swap( a, b );
+	// TEMPLATE INSTANTIATION - compiler will call void swap(int& a, int& b)
+	// swap<int>(a, b); --> this can also be specified but usually nobody does
 	std::cout << "a = " << a << ", b = " << b << std::endl;
 	std::cout << "min(a, b) = " << ::min( a, b ) << std::endl;
 	std::cout << "max(a, b) = " << ::max( a, b ) << std::endl;

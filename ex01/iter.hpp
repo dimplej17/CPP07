@@ -1,43 +1,40 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   whatever.hpp                                       :+:      :+:    :+:   */
+/*   iter.hpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: djanardh <djanardh@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/07/21 16:07:27 by djanardh          #+#    #+#             */
-/*   Updated: 2026/07/21 16:20:27 by djanardh         ###   ########.fr       */
+/*   Created: 2026/07/21 17:59:52 by djanardh          #+#    #+#             */
+/*   Updated: 2026/07/21 19:03:48 by djanardh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef WHATEVER_HPP
-#define WHATEVER_HPP
+#ifndef ITER_HPP
+#define ITER_HPP
 
+#include <cstdlib>
 #include <iostream>
 #include <string>
 
-template <typename T> // means idk the type yet, I'll call it T - a placeholder. Avoids duplicated code for different types
-void swap(T &a, T &b) // without references you'd be swapping the copies only inside the function, not the original
+template <typename T>
+void iter (T* arr, size_t const arr_len, void (*f)(T&))
 {
-	T temp = a;
-	a = b;
-	b = temp;
+	for (size_t i = 0; i < arr_len; i++)
+		f(arr[i]);
 }
 
 template <typename T>
-T min(T& a, T& b)
+void iter (const T* arr, size_t const arr_len, void (*f) (const T&))
 {
-	if (a < b)
-		return (a);
-	return (b);
+	for (size_t i = 0; i < arr_len; i++)
+		f(arr[i]);
 }
 
 template <typename T>
-T max(T& a, T& b)
+void print(const T &x) // const so that it works for both const and non-const objects
 {
-	if (a > b)
-		return (a);
-	return (b);
+	std::cout << x << std::endl;
 }
 
 #endif
