@@ -49,3 +49,13 @@ swap() cannot use const because it modifies its arguments.
 
 
 /////// ex01 ///////
+
+Why are there two iter overloads instead of one?
+
+Answer:
+The overload taking T* allows functions that modify elements (e.g., increment(int&)).
+The overload taking const T* allows iterating over const arrays and passing functions that accept const T&, ensuring const-correctness.
+
+
+
+/////// ex02 ///////
