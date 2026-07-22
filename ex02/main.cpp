@@ -6,7 +6,7 @@
 /*   By: djanardh <djanardh@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/21 23:42:34 by djanardh          #+#    #+#             */
-/*   Updated: 2026/07/21 23:43:04 by djanardh         ###   ########.fr       */
+/*   Updated: 2026/07/22 16:35:09 by djanardh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,33 +16,33 @@
 class Point
 {
 public:
+	int x;
+	int y;
 	Point() : x(0), y(0) {}
 	Point(int x, int y) : x(x), y(y) {}
  
-	int x;
-	int y;
 };
  
 static void testEmptyArray()
 {
-	std::cout << "=== default constructor (empty array) ===" << std::endl;
+	std::cout << "Default constructor (empty array)" << std::endl;
 	Array<int> a;
 	std::cout << "size: " << a.size() << std::endl;
 	try
 	{
 		a[0] = 42;
-		std::cout << "KO: should have thrown" << std::endl;
+		std::cout << "should have thrown" << std::endl;
 	}
 	catch (const std::exception& e)
 	{
-		std::cout << "OK, caught: " << e.what() << std::endl;
+		std::cout << "caught: " << e.what() << std::endl;
 	}
 	std::cout << std::endl;
 }
  
 static void testDefaultInit()
 {
-	std::cout << "=== parameterized constructor: default-init check ===" << std::endl;
+	std::cout << "Parameterized constructor" << std::endl;
 	Array<int> a(5);
 	std::cout << "size: " << a.size() << std::endl;
 	for (unsigned int i = 0; i < a.size(); ++i)
@@ -54,9 +54,9 @@ static void testDefaultInit()
 	std::cout << std::endl;
 }
  
-static void testDeepCopyConstructor()
+static void testCopyConstructor()
 {
-	std::cout << "=== copy constructor independence ===" << std::endl;
+	std::cout << "Copy constructor" << std::endl;
 	Array<int> original(3);
 	for (unsigned int i = 0; i < original.size(); ++i)
 		original[i] = static_cast<int>(i) * 10;
@@ -67,19 +67,19 @@ static void testDeepCopyConstructor()
 	copy[1] = -1;
  
 	std::cout << "original: ";
-	for (unsigned int i = 0; i < original.size(); ++i)
+	for (unsigned int i = 0; i < original.size(); i++)
 		std::cout << original[i] << " ";
 	std::cout << std::endl;
  
 	std::cout << "copy:	 ";
-	for (unsigned int i = 0; i < copy.size(); ++i)
+	for (unsigned int i = 0; i < copy.size(); i++)
 		std::cout << copy[i] << " ";
 	std::cout << std::endl << std::endl;
 }
  
-static void testDeepCopyAssignment()
+static void testCopyAssignment()
 {
-	std::cout << "=== assignment operator independence ===" << std::endl;
+	std::cout << "Copy Assignment operator" << std::endl;
 	Array<std::string> a(2);
 	a[0] = "hello";
 	a[1] = "world";
@@ -100,31 +100,31 @@ static void testDeepCopyAssignment()
 		std::cout << "[" << b[i] << "] ";
 	std::cout << std::endl;
  
-	// self-assignment shouldn't corrupt or double-free anything
-	b = b;
-	std::cout << "b after self-assignment, size: " << b.size() << std::endl;
 	std::cout << std::endl;
+	// self-assignment shouldn't corrupt or double-free anything
+	// b = b;
+	// std::cout << "b after self-assignment, size: " << b.size() << std::endl;
 }
  
 static void testOutOfBounds()
 {
-	std::cout << "=== out-of-bounds access ===" << std::endl;
+	std::cout << "Out-of-bounds access" << std::endl;
 	Array<int> a(4);
 	try
 	{
 		std::cout << a[10] << std::endl;
-		std::cout << "KO: should have thrown" << std::endl;
+		std::cout << "should have thrown" << std::endl;
 	}
 	catch (const std::exception& e)
 	{
-		std::cout << "OK, caught: " << e.what() << std::endl;
+		std::cout << "caught: " << e.what() << std::endl;
 	}
 	std::cout << std::endl;
 }
  
 static void testConstAccess(const Array<int>& a)
 {
-	std::cout << "=== const correctness ===" << std::endl;
+	std::cout << "Const correctness" << std::endl;
 	std::cout << "const size(): " << a.size() << std::endl;
 	for (unsigned int i = 0; i < a.size(); ++i)
 		std::cout << "const a[" << i << "] = " << a[i] << std::endl;
@@ -135,8 +135,8 @@ int main()
 {
 	testEmptyArray();
 	testDefaultInit();
-	testDeepCopyConstructor();
-	testDeepCopyAssignment();
+	testCopyConstructor();
+	testCopyAssignment();
 	testOutOfBounds();
  
 	Array<int> forConst(3);

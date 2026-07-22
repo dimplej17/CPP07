@@ -59,3 +59,122 @@ The overload taking const T* allows iterating over const arrays and passing func
 
 
 /////// ex02 ///////
+
+"Creates an array of n elements initialized by default" — what does this mean?
+It means: don't leave the elements as garbage — give each one whatever "default" value makes sense for its type. For a class type 
+like Point, that's whatever its default constructor sets up. For a built-in type like int, there's no constructor, but the subject's 
+tip (new int() and printing *a) is telling you that new int() still gives you a defined value: 0. The parentheses are what make that 
+happen — new T[n]() is called value-initialization, and it's the mechanism that makes "n default-initialized elements" mean 
+"n zeroed-out ints" for a primitive type, exactly like the tip demonstrates.
+
+Compare: new T[n] (no parens) leaves primitives as uninitialized garbage — reading them would technically be undefined behavior. 
+That's the bug the tip is steering you away from.
+
+
+
+What's a .tpp file?
+Not a real, separate file type from .hpp — it's just a naming convention some people use. The reason it exists: template code generally must live entirely in header files (or something #included as if it were one), because the compiler needs to see the full template definition every time it's used in a different .cpp file, in order to generate the right concrete version (e.g. Array<int>, Array<Point>) for each type. A .cpp file gets compiled once, independently — the compiler can't "reach into" it later from another file, so template implementations can't normally live there the way regular class method implementations can.
+Some people like to still visually separate a template class's declarations from its implementations, purely for readability, without putting the implementation code in a .cpp that wouldn't work. The convention is:
+Array.hpp — class declaration only (member signatures, no bodies)
+Array.tpp — the actual function bodies
+Array.hpp ends with #include "Array.tpp" so it all still gets pulled into one translation unit at compile time
+It's purely stylistic — .tpp isn't recognized by the compiler as anything special; it's #included as plain text, same as any header.
+
+
+
+
+What makes a class "concrete"?
+A concrete class is one the compiler can actually generate an object from — it has a complete, specific definition. int, std::string,
+ and Point (from earlier) are concrete: you can write Point p; and the compiler knows exactly what that means — how many bytes to 
+ allocate, what p.x refers to, etc.
+Array<T> on its own is not concrete — it's a recipe/blueprint for a class, with a placeholder (T) instead of a real type. The compiler can't 
+generate any code from it as written, because it doesn't know if T means int, Point, std::string, or something else — and the size and 
+behavior of the class depends entirely on that. It's only when you write Array<int> somewhere in your code that the compiler fills in 
+T = int and generates an actual, concrete class from the template — a process called instantiation. Array becomes concrete only in 
+combination with a specific type argument.
+
+Is other the real one?
+Yes, in the copy constructor Array(const Array& other), other refers to the pre-existing array being copied from. But careful — that's specific to the copy constructor. In your renamed version (operator=(const Array& real)), real plays the same role: it's the source. In both functions, *this is the destination. The difference is just when *this starts existing:
+In the copy constructor, *this is brand new — it doesn't have real data yet (that's the whole point, it's being constructed).
+In operator=, *this is an already-existing object that's about to be overwritten — e.g. a = b; where a already had its own data before this line ran.
+So "real" is a fine name for the source in both cases, but it's a bit misleading applied to *this in the copy constructor sense — *this isn't fake, it's just new/empty at that point.
+
+
+
+explicit vs implicit conversion
+An implicit conversion is one the compiler performs automatically, without you writing anything asking for it. For example:
+
+void greet(std::string name) { std::cout << "Hi " << name; }
+greet("Bob");   // "Bob" is a const char*, not a std::string — compiler converts it for you, silently
+That's usually harmless and convenient. The problem is when a constructor with one argument allows the same silent behavior somewhere 
+you didn't intend it:
+
+class Array { public: Array(unsigned int n) { ... } };
+
+void process(Array a) { ... }
+
+process(5);   // 5 is an int, not an Array — but the compiler silently does Array(5) for you!
+That compiles and runs, but it's almost certainly not what the programmer meant — they probably meant to pass an actual array, 
+and either mistyped or misused the function, and the compiler just quietly "fixed" it into something that runs but is wrong. explicit 
+is a keyword you put on a constructor to say "no, don't ever use this constructor for silent/automatic conversions — only when someone 
+writes it out on purpose":
+
+explicit Array(unsigned int n) { ... }
+
+process(5);          // now a COMPILE ERROR — good, catches the mistake
+process(Array(5));   // fine — explicitly, deliberately constructing an Array
+It costs you nothing when used correctly, and it turns a class of silent bugs into loud compile errors instead. That's why it's 
+good practice on any single-argument constructor unless you specifically want implicit conversions (rare).
+
+
+
+
+Bug 1 — the what() definition is in the wrong place and wrong syntax. You wrote:
+cpp
+const char* Array::OutOfRangeException::what() const throw()
+{
+    return ("Index is out of bounds");
+}
+
+class OutOfRangeException : public std::exception
+{
+    ...
+};
+Two problems: it references OutOfRangeException before that class is even declared (order matters — the compiler reads top to bottom), 
+and this out-of-class-definition syntax (Array::OutOfRangeException::what) isn't valid while you're still inside the Array class body 
+being defined — that syntax is only for defining a member after its enclosing class(es) are fully closed with };, and since Array is a 
+template you'd also need to write template <typename T> const char* Array<T>::OutOfRangeException::what().... Much simpler: just write 
+the body directly inside the nested class.
+
+Bug 2 — throw Array::OutOfRangeException; doesn't compile. OutOfRangeException here names a type, not an object. You can't throw a 
+type — you throw an instance of it. You need parentheses to actually construct one: throw OutOfRangeException();. (You also don't need 
+the Array:: qualifier — you're already inside Array, so its nested class is visible directly.)
+
+
+
+what's the point of this test?: testConstAccess
+
+It tests const-correctness — that your Array works correctly when accessed through a const Array<T>&, not just a regular mutable one.
+Here's the concrete problem it catches. Look at the function signature:
+
+static void testConstAccess(const Array<int>& a)
+a here is a const reference — the caller is saying "you can look at this array, but you may not modify it." Inside that function, the 
+compiler will only let you call const-qualified member functions on a. If Array only had the non-const operator[]:
+
+T& operator[](unsigned int index) { ... }
+then this line inside testConstAccess:
+
+std::cout << "const a[" << i << "] = " << a[i] << std::endl;
+would fail to compile — the compiler would say something like "no matching function for call to operator[]" because the only operator[] 
+available returns a non-const reference, which would let you sneak in and modify a const object through it. That's disallowed by the 
+language.
+That's exactly why Array.hpp has two overloads:
+
+T& operator[](unsigned int index);              // used when the Array is non-const
+const T& operator[](unsigned int index) const;  // used when the Array is const
+testConstAccess exists specifically to exercise that second overload and prove it's there and working — without this test, you could 
+accidentally delete the const overload, everything else in main.cpp would still compile and pass (since none of your other tests use a 
+const Array&), and you wouldn't find out it was broken until an evaluator tried to pass you a const Array& during your defense and 
+watched it fail to compile.
+It's also indirectly testing size()'s const qualifier the same way — a.size() inside a const-reference context only works because size() 
+is itself marked const in the header.
