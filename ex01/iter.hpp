@@ -6,7 +6,7 @@
 /*   By: djanardh <djanardh@student.42heilbronn.    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/21 17:59:52 by djanardh          #+#    #+#             */
-/*   Updated: 2026/07/21 19:03:48 by djanardh         ###   ########.fr       */
+/*   Updated: 2026/07/22 15:01:54 by djanardh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,7 @@
 #include <string>
 
 template <typename T>
-void iter (T* arr, size_t const arr_len, void (*f)(T&))
+void iter (T* arr, size_t const arr_len, void (*f)(T&)) // for functions that would modify the array, ex. increment()
 {
 	for (size_t i = 0; i < arr_len; i++)
 		f(arr[i]);
